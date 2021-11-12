@@ -1,1 +1,0 @@
-g++ -g -o client.out client.cpp

@@ -9,21 +9,21 @@
 int main(int argc, char** argv) {
     if(argc != 3) {
         printf("Using ./client ip port\n Example: ./client 127.0.0.1 5005\n");
-        return -1;
+        return EXIT_FAILURE;
     }
 
     // [1] Create Socket
     int sockfd;
     if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        printf("[client] create socket failure!\n");
-        return -1;
+        perror("socket");
+        return EXIT_FAILURE;
     }
 
     // [2] Send request to server
     struct hostent *h;
     if((h = gethostbyname(argv[1])) == 0) {
-        printf("[client] get hostname failure\n");
-        return -1;
+        printf("gethostbyname");
+        return EXIT_FAILURE;
     }
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
@@ -31,8 +31,8 @@ int main(int argc, char** argv) {
     server_addr.sin_port=htons(atoi(argv[2]));
     memcpy(&server_addr.sin_addr, h->h_addr, h->h_length);
     if(connect(sockfd,(struct sockaddr *)&server_addr, sizeof(server_addr)) != 0) {
-        printf("[client] connect server failure\n");
-        return -1;
+        perror("connect");
+        return EXIT_FAILURE;
     }
 
     // [3] Communication with server
@@ -57,5 +57,5 @@ int main(int argc, char** argv) {
 
     // [4] close socket
     close(sockfd);
-    return 0;
+    return EXIT_SUCCESS;
 }

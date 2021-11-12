@@ -13,8 +13,8 @@ int main(int argc, char** argv) {
     // [1] Creating server socket
     int listenfd;
     if((listenfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        printf("[server] create listen socket failure!\n");
-        return -1;
+        perror("socket");
+        return EXIT_FAILURE;
     }
 
     // [2] Bind ing server IP and port to listen socket
@@ -24,14 +24,14 @@ int main(int argc, char** argv) {
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port = htons(atoi(argv[1]));
     if(bind(listenfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) != 0) {
-        printf("[server] bind listen failure!\n");
+        perror("bind");
         close(listenfd);
-        return -1;
+        return EXIT_FAILURE;
     }
 
     // [3] Let socket keep listening
     if(listen(listenfd, 3) != 0) {
-        printf("[server] socket listen failure!\n");
+        perror("listen");
     }
 
     // [4] Waiting client connect
@@ -64,5 +64,5 @@ int main(int argc, char** argv) {
     close(clientfd);
     close(listenfd);
 
-    return 0;
+    return EXIT_SUCCESS;
 }

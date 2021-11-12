@@ -1,0 +1,1 @@
+g++ -g -o server.out server.cpp

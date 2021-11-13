@@ -35,33 +35,37 @@ int main(int argc, char** argv) {
     }
 
     // [4] Waiting client connect
-    int clientfd;
-    int socklen = sizeof(struct sockaddr_in);
-    struct sockaddr_in client_addr;
-    clientfd = accept(listenfd, (struct sockaddr *)&client_addr, (socklen_t *)&socklen);
-    printf("Client(%s) has connected\n", inet_ntoa(client_addr.sin_addr));
+    while (1)
+    {
+        int clientfd;
+        int socklen = sizeof(struct sockaddr_in);
+        struct sockaddr_in client_addr;
+        clientfd = accept(listenfd, (struct sockaddr *)&client_addr, (socklen_t *)&socklen);
+        printf("Client(%s) has connected\n", inet_ntoa(client_addr.sin_addr));
 
-    // [5] Communication with client.
-    char buffer[1024];
-    while(1) {
-        int iret;
-        memset(buffer, 0, sizeof(buffer)); 
-        if((iret = recv(clientfd, &buffer, sizeof(buffer), 0)) <= 0) { // Receive message from client
-            printf("[server] receive iret=%d\n", iret);
-            break;
-        }
-        printf("Receive Message: %s\n", buffer);
+        // [5] Communication with client.
+        char buffer[1024];
 
-        strcpy(buffer, "OK!");
-        if((iret = send(clientfd, &buffer, strlen(buffer), 0)) <= 0) {
-            printf("[server] send iret=%d\n", iret);
-            break;
+        while(1) {
+            int iret;
+            memset(buffer, 0, sizeof(buffer)); 
+            if((iret = recv(clientfd, &buffer, sizeof(buffer), 0)) <= 0) { // Receive message from client
+                printf("[server] receive iret=%d\n", iret);
+                break;
+            }
+            printf("Receive Message: %s\n", buffer);
+
+            strcpy(buffer, "OK!");
+            if((iret = send(clientfd, &buffer, strlen(buffer), 0)) <= 0) {
+                printf("[server] send iret=%d\n", iret);
+                break;
+            }
+            printf("Send: %s\n", buffer);
         }
-        printf("Send: %s\n", buffer);
+        close(clientfd);
     }
     
     // [6] Close socket
-    close(clientfd);
     close(listenfd);
 
     return EXIT_SUCCESS;

@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     client.Connect();
     char buffer[1024];
     int bufferLength = 0;
-    for(int i = 0; i < 1; ++i) {
+    for(int i = 0; i < 3; ++i) {
         memset(buffer, 0, sizeof(buffer));
         sprintf(buffer, "This is %dth request, ID is: %d", i + 1, i + 1);
         if(client.Write(buffer)) {

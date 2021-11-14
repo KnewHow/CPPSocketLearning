@@ -30,19 +30,24 @@ int main(int argc, char **argv) {
         bool r = server.Accept();
         if(r) {
             LOG(INFO) << "Build connect from: " << std::string(server.GetClientIP());
-            if(server.Read(buffer, &bufferLength)) {
-                LOG(INFO) << "Receive: " << std::string(buffer, bufferLength);
-                memset(buffer, 0, sizeof(buffer));
-                strcpy(buffer, "OK");
-                r = server.Write(buffer);
-                if(r) {
-                    LOG(INFO) << "Send responese to clinet: " << std::string(buffer);
+            while(true) {
+                if(server.Read(buffer, &bufferLength)) {
+                    LOG(INFO) << "Receive: " << std::string(buffer, bufferLength);
+                    memset(buffer, 0, sizeof(buffer));
+                    strcpy(buffer, "OK");
+                    r = server.Write(buffer);
+                    if(r) {
+                        LOG(INFO) << "Send responese to clinet: " << std::string(buffer);
+                    } else {
+                        // LOG(INFO) << "Send responese to client failure";
+                        break;
+                    }
                 } else {
-                    LOG(INFO) << "Send responese to client failure";
+                    // LOG(INFO) << "Receive client request failure!";
+                    break;
                 }
-            } else {
-                LOG(INFO) << "Receive client request failure!";
             }
+            
         }
     }
     return EXIT_SUCCESS;

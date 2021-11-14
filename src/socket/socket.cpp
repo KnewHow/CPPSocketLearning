@@ -35,6 +35,8 @@ bool read(const int sockfd, char *data, const size_t length) {
         if(ret == -1) {
             perror("recv");
             return false;
+        } else if(ret == 0) {
+            return false;
         }
         left -= ret;
         idx += ret;
@@ -48,6 +50,8 @@ bool write(const int sockfd, const char *data, const size_t length) {
         ret = send(sockfd, data + idx, left, 0);
         if(ret == -1) {
             perror("send");
+            return false;
+        } else if(ret == 0) {
             return false;
         }
         left -= ret;

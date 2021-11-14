@@ -47,6 +47,7 @@ int main(int argc, char **argv) {
                     break;
                 }
             }
+            server.CloseClient();
             google::FlushLogFiles(google::INFO);
             
         }

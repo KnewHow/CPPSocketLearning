@@ -7,6 +7,14 @@
 #define SRC_SOCKET_SOCKET_H_
 
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <string.h>
+#include <stdlib.h>
+#include <netdb.h>
+
+#include "glog/logging.h"
 
 namespace server_client {
 

@@ -7,13 +7,14 @@ using namespace server_client;
 
 int main(int argc, char **argv) {
     google::InitGoogleLogging(argv[0]);
-    std::string log_dir = "/tmp/socket_server";
-    bool log_dir_is_exsit = std::filesystem::exists(log_dir.c_str());
-    if(!log_dir_is_exsit) {
-        std::filesystem::create_directory(log_dir.c_str());
-    }
-    FLAGS_log_dir = log_dir.c_str();
-    FLAGS_stderrthreshold = 1; // Warning and above.
+    // std::string log_dir = "/tmp/socket_server";
+    // bool log_dir_is_exsit = std::filesystem::exists(log_dir.c_str());
+    // if(!log_dir_is_exsit) {
+    //     std::filesystem::create_directory(log_dir.c_str());
+    // }
+    // FLAGS_log_dir = log_dir.c_str();
+    // FLAGS_stderrthreshold = 1; // Warning and above.
+    FLAGS_logtostderr = true;
 
     if(argc != 2) {
         printf("Using ./sever prot\n Example: ./sever 5005\n");
@@ -28,10 +29,13 @@ int main(int argc, char **argv) {
     while(1) {
         bool r = server.Accept();
         if(r) {
+            LOG(INFO) << "Build connect from: " << std::string(server.GetClientIP());
             if(server.Read(buffer, &bufferLength)) {
                 LOG(INFO) << "Receive: " << std::string(buffer, bufferLength);
+                memset(buffer, 0, sizeof(buffer));
                 strcpy(buffer, "OK");
-                if(server.Write(buffer)) {
+                r = server.Write(buffer);
+                if(r) {
                     LOG(INFO) << "Send responese to clinet: " << std::string(buffer);
                 } else {
                     LOG(INFO) << "Send responese to client failure";

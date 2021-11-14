@@ -8,24 +8,25 @@ using namespace server_client;
 
 int main(int argc, char **argv) {
     google::InitGoogleLogging(argv[0]);
-    std::string log_dir = "/tmp/socket_client";
-    bool log_dir_is_exsit = std::filesystem::exists(log_dir.c_str());
-    if(!log_dir_is_exsit) {
-        std::filesystem::create_directory(log_dir.c_str());
-    }
-    FLAGS_log_dir = log_dir.c_str();
-    FLAGS_stderrthreshold = 1; // Warning and above.
+    // std::string log_dir = "/tmp/socket_client";
+    // bool log_dir_is_exsit = std::filesystem::exists(log_dir.c_str());
+    // if(!log_dir_is_exsit) {
+    //     std::filesystem::create_directory(log_dir.c_str());
+    // }
+    // FLAGS_log_dir = log_dir.c_str();
+    // FLAGS_stderrthreshold = 1; // Warning and above.
     
-    if(argc != 3) {
-        printf("Using ./clinet IP port\n Example: ./client 127.0.0.1 5005\n");
-        return EXIT_FAILURE;
-    }
+    // if(argc != 3) {
+    //     printf("Using ./clinet IP port\n Example: ./client 127.0.0.1 5005\n");
+    //     return EXIT_FAILURE;
+    // }
+    FLAGS_logtostderr = true;
 
     Client client(std::string(argv[1]), atoi(argv[2]));
     client.Connect();
     char buffer[1024];
     int bufferLength = 0;
-    for(int i = 0; i < 3; ++i) {
+    for(int i = 0; i < 1; ++i) {
         memset(buffer, 0, sizeof(buffer));
         sprintf(buffer, "This is %dth request, ID is: %d", i + 1, i + 1);
         if(client.Write(buffer)) {

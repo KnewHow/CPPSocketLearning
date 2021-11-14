@@ -12,12 +12,12 @@ bool TCPWrite(const int sockfd, const char *data, const int dataLength) {
     if(dataLength == 0) length = strlen(data);
     else                length = dataLength;
 
-    int net_length = htonl(dataLength);
-    char buffer[net_length + 4];
+    int net_length = htonl(length);
+    char buffer[length + 4];
     memset(buffer, 0, sizeof(buffer));
     memcpy(buffer, &net_length, 4);
     memcpy(buffer + 4, data, length);
-    return write(sockfd, buffer, net_length);
+    return write(sockfd, buffer, length + 4);
 }
 
 bool TCPRead(const int sockfd, char *data, int *dataLength) {

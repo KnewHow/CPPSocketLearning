@@ -36,6 +36,8 @@ INCLUDE_DIRECTORIES (
   ${CMAKE_BINARY_DIR}/ext/glog
 )
 
+##filesystem support, for compatible gcc version below 4
+link_libraries(stdc++fs)
 ####################### compiler params ############################
 # Annoying compiler-specific details
 IF(CMAKE_COMPILER_IS_GNUCXX)

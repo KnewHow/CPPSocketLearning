@@ -74,7 +74,7 @@ void Server::CloseClient() {
 }
 
 
-void Server::Close() {
+void Server::CloseListen() {
     if(listenfd != -1) {
         int ret = close(listenfd);
         if(ret == -1) {
@@ -87,7 +87,7 @@ void Server::Close() {
 
 Server::~Server() {
     CloseClient();
-    Close();
+    CloseListen();
 }
 
 } // namespace server_client

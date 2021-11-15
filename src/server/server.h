@@ -18,7 +18,7 @@ public:
     bool Write(const char *buffer, const int bufferLength = 0) const;
     char *GetClientIP() const;
     void CloseClient();
-    void Close();
+    void CloseListen();
     ~Server();
     const int port;
 

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <filesystem>
-
+#include <unistd.h>
 
 #include "client/client.h"
 
@@ -26,9 +26,9 @@ int main(int argc, char **argv) {
     client.Connect();
     char buffer[1024];
     int bufferLength = 0;
-    for(int i = 0; i < 3; ++i) {
+    for(int i = 0; i < 30; ++i) {
         memset(buffer, 0, sizeof(buffer));
-        sprintf(buffer, "This is %dth request, ID is: %d", i + 1, i + 1);
+        sprintf(buffer, "[%d] This is %dth request, ID is: %d", getpid(), i + 1, i + 1);
         if(client.Write(buffer)) {
             LOG(INFO) << "Send message to server success: " << std::string(buffer);
             if(client.Read(buffer, &bufferLength)) {
@@ -39,5 +39,7 @@ int main(int argc, char **argv) {
         } else {
             LOG(INFO) << "send message to server failure!";
         }
+        sleep(1);
     }
+    client.Close();
 }

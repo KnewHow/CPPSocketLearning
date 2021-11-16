@@ -3,6 +3,7 @@
 #include <signal.h>
 
 #include "server/server.h"
+#include "xmlParser.h"
 
 
 using namespace server_client;
@@ -12,6 +13,8 @@ Server *child_process_sever = nullptr;
 
 void parentProcessExit(int sig);
 void childProcessExit(int sig);
+bool service(char *receiveBuffer, char *sendBuffer);
+bool login(char *receiveBuffer, char *sendBuffer);
 
 int main(int argc, char **argv) {
     google::InitGoogleLogging(argv[0]);
@@ -35,9 +38,6 @@ int main(int argc, char **argv) {
     
     Server server(atoi(argv[1]));
     parent_process_server = &server;
-    char buffer[1024];
-    int bufferLength;
-    memset(buffer, 0, sizeof(buffer));
     while(1) {
         bool r = server.Accept();
         int pid = fork();
@@ -50,16 +50,23 @@ int main(int argc, char **argv) {
         signal(SIGTERM, childProcessExit);
         server.CloseListen(); // for child process, don't need to listen, close it.
         child_process_sever = &server;
+
+        char receiveBuffer[1024], sendBuffer[1024];
+        int receiveBufferLength;
+        memset(receiveBuffer, 0, sizeof(receiveBuffer));
+        memset(sendBuffer, 0, sizeof(sendBuffer));
+
         if(r) {
             LOG(INFO) << "Build connect from: " << std::string(server.GetClientIP());
             while(true) {
-                if(server.Read(buffer, &bufferLength)) {
-                    LOG(INFO) << "[" << getpid() << "] " << "Receive: " << std::string(buffer, bufferLength);
-                    memset(buffer, 0, sizeof(buffer));
-                    strcpy(buffer, "OK");
-                    r = server.Write(buffer);
-                    if(r) {
-                        LOG(INFO) << "Send responese to clinet: " << std::string(buffer);
+                if(server.Read(receiveBuffer, &receiveBufferLength)) {
+                    LOG(INFO) << "Request: " << std::string(receiveBuffer, receiveBufferLength);
+                    if(service(receiveBuffer, sendBuffer)) { // success deal service
+                        if(server.Write(sendBuffer)) { // send response to client
+                            LOG(INFO) << "Response: " << std::string(sendBuffer);
+                        } else {
+                            break;
+                        }
                     } else {
                         break;
                     }
@@ -69,12 +76,42 @@ int main(int argc, char **argv) {
                 google::FlushLogFiles(google::INFO);
             }
         }
-        server.CloseClient();
         LOG(INFO) << "Close client connect";
         google::FlushLogFiles(google::INFO);
         return EXIT_SUCCESS; // exit child process
     }
     return EXIT_SUCCESS;
+}
+
+bool service(char *receiveBuffer, char *sendBuffer) {
+    int ibizcode=-1;
+    GetXMLBuffer(receiveBuffer,"bizcode",&ibizcode);
+    switch (ibizcode)
+    {
+    case 1: // 身份认证
+        return login(receiveBuffer, sendBuffer);
+    
+    default: 
+        LOG(INFO) << "Invalid bizcode: " << ibizcode;
+        return false;
+    }
+    
+}
+
+bool login(char *receiveBuffer, char *sendBuffer) {
+    char username[51],password[51];
+    memset(username,0,sizeof(username));
+    memset(password,0,sizeof(password));
+
+    GetXMLBuffer(receiveBuffer,"username",username,50);
+    GetXMLBuffer(receiveBuffer,"password",password,50);
+
+    if ((strcmp(username,"Knewhow")==0) && (strcmp(password,"123")==0) )
+        sprintf(sendBuffer,"<retcode>0</retcode><message>成功。</message>");
+    else
+        sprintf(sendBuffer,"<retcode>-1</retcode><message>用户名或密码不正确。</message>");
+
+    return true;
 }
 
 

@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     char buffer[1024];
     int bufferLength = 0;
     memset(buffer,0,sizeof(buffer));
-    snprintf(buffer,1000,"<bizcode>1</bizcode><username>Knewhow</username><password>1234</password>");
+    snprintf(buffer,1000,"<bizcode>1</bizcode><username>Knewhow</username><password>123</password>");
     if(client.Write(buffer)) {
         LOG(INFO) << "Send message to server success: " << std::string(buffer);
         if(client.Read(buffer, &bufferLength)) {

@@ -85,6 +85,10 @@ void Server::CloseListen() {
     listenfd = -1;
 }
 
+int Server::GetClientFd() {
+    return clientfd;
+}
+
 Server::~Server() {
     CloseClient();
     CloseListen();

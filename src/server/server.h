@@ -19,6 +19,7 @@ public:
     char *GetClientIP() const;
     void CloseClient();
     void CloseListen();
+    int GetClientFd();
     ~Server();
     const int port;
 

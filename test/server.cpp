@@ -1,86 +1,159 @@
 #include <iostream>
 #include <filesystem>
 #include <signal.h>
+#include <pthread.h>
+#include <sys/sysinfo.h>
+
+#include <vector>
 
 #include "server/server.h"
+#include "socket.h"
 #include "xmlParser.h"
 
 
 using namespace server_client;
 
-Server *parent_process_server = nullptr;
-Server *child_process_sever = nullptr;
+struct Request {
+    Request(){
+        clientfd = -1;
+    }
+    Request(int fd): clientfd(fd){}
+    int clientfd;
+};
 
-void parentProcessExit(int sig);
-void childProcessExit(int sig);
+bool isShutdown = false;
+std::vector<pthread_t> thread_ids;
+std::vector<Request> requests;
+pthread_mutex_t mutex;
+pthread_cond_t cond;
+
+void shutdown_func(int sig);
+void* thread_func(void *argc);
+void doRequest(const Request &req);
+
 bool service(char *receiveBuffer, char *sendBuffer);
 bool login(char *receiveBuffer, char *sendBuffer);
 
+Server *global_server = nullptr;
+
 int main(int argc, char **argv) {
     google::InitGoogleLogging(argv[0]);
-    // std::string log_dir = "/tmp/socket_server";
-    // bool log_dir_is_exsit = std::filesystem::exists(log_dir.c_str());
-    // if(!log_dir_is_exsit) {
-    //     std::filesystem::create_directory(log_dir.c_str());
-    // }
-    // FLAGS_log_dir = log_dir.c_str();
-    // FLAGS_stderrthreshold = 1; // Warning and above.
-    FLAGS_logtostderr = true;
+    std::string log_dir = "/tmp/socket_server";
+    bool log_dir_is_exsit = std::filesystem::exists(log_dir.c_str());
+    if(!log_dir_is_exsit) {
+        std::filesystem::create_directory(log_dir.c_str());
+    }
+    FLAGS_log_dir = log_dir.c_str();
+    FLAGS_stderrthreshold = 1; // Warning and above.
+    // FLAGS_logtostderr = true;
+
 
     if(argc != 2) {
         printf("Using ./sever prot\n Example: ./sever 5005\n");
         return EXIT_FAILURE;
     }
-    signal(SIGCHLD, SIG_IGN); // ignore child process exit, avoid defunct process
+    LOG(INFO) << "[" << pthread_self() << "] main thread work";
     
-    signal(SIGINT, parentProcessExit); // parent exit signal
-    signal(SIGTERM, parentProcessExit);
+    isShutdown = false;
+    if(pthread_mutex_init(&mutex, nullptr) != 0) {
+        perror("pthread_mutex_init");
+        LOG(FATAL) << "init mutex failure";
+    }
+    if(pthread_cond_init(&cond, nullptr)!= 0) {
+        perror("pthread_cond_init");
+        LOG(FATAL) << "init cond failure";
+    }
+
+    int avaiable_cores = get_nprocs();
+    thread_ids.clear();
+    for(int i = 0; i < avaiable_cores - 1; ++i) { // we use avaiable_cores -1 to create child thread, remain one core to main thread
+        pthread_t pid;
+        pthread_create(&pid, nullptr, thread_func, nullptr);
+        thread_ids.push_back(pid);
+    }
+
+    
+    signal(SIGINT, shutdown_func); // parent exit signal
+    signal(SIGTERM, shutdown_func);
     
     Server server(atoi(argv[1]));
-    parent_process_server = &server;
-    while(1) {
+    global_server = &server;
+    while(true) {
         bool r = server.Accept();
-        int pid = fork();
-        if(pid > 0) {// let parent process go on listening and child process deal request.
-            server.CloseClient();// because parent process don't deal request, so parent process need to close the client socket
-            continue;
-        }
-        
-        signal(SIGINT, childProcessExit); // child exit signal
-        signal(SIGTERM, childProcessExit);
-        server.CloseListen(); // for child process, don't need to listen, close it.
-        child_process_sever = &server;
-
-        char receiveBuffer[1024], sendBuffer[1024];
-        int receiveBufferLength;
-        memset(receiveBuffer, 0, sizeof(receiveBuffer));
-        memset(sendBuffer, 0, sizeof(sendBuffer));
-
         if(r) {
             LOG(INFO) << "Build connect from: " << std::string(server.GetClientIP());
-            while(true) {
-                if(server.Read(receiveBuffer, &receiveBufferLength)) {
-                    LOG(INFO) << "Request: " << std::string(receiveBuffer, receiveBufferLength);
-                    if(service(receiveBuffer, sendBuffer)) { // success deal service
-                        if(server.Write(sendBuffer)) { // send response to client
-                            LOG(INFO) << "Response: " << std::string(sendBuffer);
-                        } else {
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
+            pthread_mutex_lock(&mutex);
+            requests.push_back({server.GetClientFd()});
+            pthread_mutex_unlock(&mutex);  
+            pthread_cond_signal(&cond);
+        }
+    }
+    
+}
+
+
+void shutdown_func(int sig) {
+    isShutdown = true;
+    pthread_cond_broadcast(&cond);
+    for(int i = 0; i < thread_ids.size(); ++i) {
+        pthread_join(thread_ids[i], nullptr);
+    }
+    if(global_server)
+        global_server->CloseListen();
+    
+    pthread_mutex_destroy(&mutex);
+    pthread_cond_destroy(&cond);
+    LOG(INFO) << "[" << pthread_self() << "] main thread exit";
+    exit(0);
+}
+
+void* thread_func(void *argc) {
+    LOG(INFO) << "[" << pthread_self() << "] thread work";
+    Request req;
+    pthread_mutex_lock(&mutex);
+    while(!isShutdown) {
+        if(requests.empty()) {
+            pthread_cond_wait(&cond, &mutex);
+        } else {
+            memcpy(&req, &requests[0], sizeof(req));
+            requests.erase(requests.begin());
+            pthread_mutex_unlock(&mutex);
+            doRequest(req);
+            pthread_mutex_lock(&mutex);
+        }
+    }
+    pthread_mutex_unlock(&mutex);
+    LOG(INFO) << "[" << pthread_self() << "] thread exit";
+    return nullptr;
+}
+
+void doRequest(const Request &req) {
+    char receiveBuffer[1024], sendBuffer[1024];
+    int receiveBufferLength;
+    LOG(INFO) <<  "[" << pthread_self() <<"] thread deal request begin...";
+    while(true) {
+        memset(receiveBuffer, 0, sizeof(receiveBuffer));
+        memset(sendBuffer, 0, sizeof(sendBuffer));
+        if(TCPRead(req.clientfd, receiveBuffer, &receiveBufferLength)) {
+            LOG(INFO) << "Request: " << std::string(receiveBuffer, receiveBufferLength);
+            if(service(receiveBuffer, sendBuffer)) { // success deal service
+                if(TCPWrite(req.clientfd, sendBuffer)) { // send response to client
+                    LOG(INFO) << "Response: " << std::string(sendBuffer);
                 } else {
                     break;
                 }
-                google::FlushLogFiles(google::INFO);
+            } else {
+                break;
             }
+        } else {
+            break;
         }
-        LOG(INFO) << "Close client connect";
-        google::FlushLogFiles(google::INFO);
-        return EXIT_SUCCESS; // exit child process
     }
-    return EXIT_SUCCESS;
+    if(close(req.clientfd) == -1) {
+        perror("close");
+        LOG(ERROR) << "Close clientfd: [" << req.clientfd << "] failure";
+    }
+    LOG(INFO) <<  "[" << pthread_self() <<"] thread deal request end...";
 }
 
 bool service(char *receiveBuffer, char *sendBuffer) {
@@ -112,30 +185,4 @@ bool login(char *receiveBuffer, char *sendBuffer) {
         sprintf(sendBuffer,"<retcode>-1</retcode><message>用户名或密码不正确。</message>");
 
     return true;
-}
-
-
-void parentProcessExit(int sig) {
-    if(sig > 0) {
-        signal(sig, SIG_IGN);
-        signal(SIGINT, SIG_IGN);
-        signal(SIGTERM, SIG_IGN); // avoid multiply exit
-    }
-    kill(0, SIGTERM); // notify child process exit
-    if(parent_process_server)
-        parent_process_server->~Server();
-    printf("[%d] Parent process has exited\n", getpid());
-    exit(0);
-}
-
-void childProcessExit(int sig) {
-    if(sig > 0) {
-        signal(sig, SIG_IGN);
-        signal(SIGINT, SIG_IGN);
-        signal(SIGTERM, SIG_IGN); // avoid multiply exit
-    }
-    if(child_process_sever)
-        child_process_sever->~Server();
-    printf("[%d] Child process has exited\n", getpid());
-    exit(0);
 }

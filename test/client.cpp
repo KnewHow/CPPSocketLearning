@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
         } else {
             LOG(INFO) << "send message to server failure!";
         }
-        sleep(1);
+        usleep(1000);
     }
     
 }

@@ -124,3 +124,5 @@ TARGET_LINK_LIBRARIES (server ${ALL_SOCKET_LIBS} )
 add_executable(client test/client.cpp)
 TARGET_COMPILE_FEATURES (client PRIVATE ${PBRT_CXX17_FEATURES} )
 TARGET_LINK_LIBRARIES (client ${ALL_SOCKET_LIBS} )
+
+add_executable(generate_test_bash test/generate_test_bash.cpp)

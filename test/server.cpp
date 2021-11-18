@@ -82,10 +82,16 @@ int main(int argc, char **argv) {
         bool r = server.Accept();
         if(r) {
             LOG(INFO) << "Build connect from: " << std::string(server.GetClientIP());
-            pthread_mutex_lock(&mutex);
-            requests.push_back({server.GetClientFd()});
-            pthread_mutex_unlock(&mutex);  
-            pthread_cond_signal(&cond);
+            if(thread_ids.empty()) { // no other threads, deal service by self
+                Request req(server.GetClientFd());
+                doRequest(req);
+            } else {
+                pthread_mutex_lock(&mutex);
+                requests.push_back({server.GetClientFd()});
+                pthread_mutex_unlock(&mutex);
+                pthread_cond_signal(&cond);
+            }
+            
         }
     }
     

@@ -7,8 +7,8 @@
 #include <vector>
 #include <unordered_map>
 
-#include "server/server.h"
-#include "socket.h"
+#include "server.h"
+#include "socket/socket.h"
 #include "xmlParser.h"
 
 
@@ -33,6 +33,7 @@ Server *global_server = nullptr;
 
 int main(int argc, char **argv) {
     google::InitGoogleLogging(argv[0]);
+    
     std::string log_dir = "/tmp/socket_server";
     bool log_dir_is_exsit = std::filesystem::exists(log_dir.c_str());
     if(!log_dir_is_exsit) {

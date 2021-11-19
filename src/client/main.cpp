@@ -2,7 +2,7 @@
 #include <filesystem>
 #include <unistd.h>
 
-#include "client/client.h"
+#include "client.h"
 #include "xmlParser.h"
 
 using namespace server_client;

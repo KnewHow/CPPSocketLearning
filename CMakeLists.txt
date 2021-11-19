@@ -40,7 +40,6 @@ INCLUDE_DIRECTORIES (
 link_libraries(stdc++fs)
 
 # postgresql connect
-
 ####################### compiler params ############################
 # Annoying compiler-specific details
 IF(CMAKE_COMPILER_IS_GNUCXX)
@@ -83,49 +82,92 @@ SET (PBRT_CXX17_FEATURES
   cxx_static_assert
 )
 
-INCLUDE_DIRECTORIES(src/socket/)
 INCLUDE_DIRECTORIES(src/)
 
 INCLUDE_DIRECTORIES (
   ext/glog/src
   ext/xmlParser
+  ext/postgresql
 )
 
-set(SOCKET_CORE_HEADS
+FILE(GLOB COMMON_LIB
+  src/common/*.cpp
+  src/common/*.h
+)
+
+SET(SOCKET_CORE_HEADS
 	src/socket/socket.h
 )
 
-set(SOCKET_CORE_SOURCES
+SET(SOCKET_CORE_SOURCES
 	src/socket/socket.cpp
 )
 
 FILE(GLOB XML_PARSER
-   ext/xmlParser/*
+  ext/xmlParser/*.cpp
+  ext/xmlParser/*.h
 )
 
-FILE(GLOB SOCKET_SOURCE
-	src/server/*
-	src/client/*
+FILE(GLOB POSTGRESQL
+  ext/postgresql/*.cpp
+  ext/postgresql/*.h
+)
+
+FILE(GLOB SOCKET_DAO
+  src/dao/*.h
+  src/dao/*.cpp
+)
+
+FILE(GLOB SOCKET_SERVICE
+  src/service/*.h
+  src/service/*.cpp
+)
+
+SET(SOCKET_SOURCE
+	src/server/server.h
+  src/server/server.cpp
+  src/client/client.h
+	src/client/client.cpp
 )
 
 ADD_LIBRARY(SOCKET_LIB STATIC
 	${SOCKET_CORE_HEADS}
 	${SOCKET_CORE_SOURCES}
 	${SOCKET_SOURCE}
-  ${XML_PARSER}
+  ${SOCKET_DAO}
+  ${SOCKET_SERVICE}
+  ${COMMON_LIB}
 )
 
 SET(ALL_SOCKET_LIBS
 	SOCKET_LIB
 	glog
+  
+  ${XML_PARSER}
+  ${POSTGRESQL}
+  -lpq
+  
 )
 
-add_executable(server test/server.cpp)
+add_executable(server src/server/main.cpp)
 TARGET_COMPILE_FEATURES (server PRIVATE ${PBRT_CXX17_FEATURES} )
-TARGET_LINK_LIBRARIES (server ${ALL_SOCKET_LIBS} )
+TARGET_LINK_LIBRARIES (server ${ALL_SOCKET_LIBS})
 
-add_executable(client test/client.cpp)
+add_executable(client src/client/main.cpp)
 TARGET_COMPILE_FEATURES (client PRIVATE ${PBRT_CXX17_FEATURES} )
 TARGET_LINK_LIBRARIES (client ${ALL_SOCKET_LIBS} )
 
-add_executable(generate_test_bash test/generate_test_bash.cpp)
+
+# Unit test
+include_directories(tests/)
+FILE (GLOB SOCKET_TEST
+  tests/*.cpp
+  tests/*.h
+  tests/gtest/*.cc
+  tests/db/*.cpp
+)
+add_executable (socket_test ${SOCKET_TEST} )
+TARGET_COMPILE_FEATURES (socket_test PRIVATE ${PBRT_CXX17_FEATURES} )
+TARGET_LINK_LIBRARIES (socket_test ${ALL_SOCKET_LIBS} )
+
+add_executable(generate_test_bash test_bash/generate_test_bash.cpp)

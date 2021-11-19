@@ -6,7 +6,7 @@
 #ifndef SRC_SERVER_SERVER_H_
 #define SRC_SERVER_SERVER_H_
 
-#include "socket.h"
+#include "socket/socket.h"
 
 namespace server_client {
 

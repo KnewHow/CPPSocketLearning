@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.11.0)
 
 project(Socket-Server-Client)
 
@@ -38,6 +38,9 @@ INCLUDE_DIRECTORIES (
 
 ##filesystem support, for compatible gcc version below 4
 link_libraries(stdc++fs)
+
+# postgresql connect
+
 ####################### compiler params ############################
 # Annoying compiler-specific details
 IF(CMAKE_COMPILER_IS_GNUCXX)

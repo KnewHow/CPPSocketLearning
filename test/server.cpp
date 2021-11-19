@@ -5,6 +5,7 @@
 #include <sys/sysinfo.h>
 
 #include <vector>
+#include <unordered_map>
 
 #include "server/server.h"
 #include "socket.h"
@@ -20,12 +21,6 @@ struct Request {
     Request(int fd): clientfd(fd){}
     int clientfd;
 };
-
-bool isShutdown = false;
-std::vector<pthread_t> thread_ids;
-std::vector<Request> requests;
-pthread_mutex_t mutex;
-pthread_cond_t cond;
 
 void shutdown_func(int sig);
 void* thread_func(void *argc);
@@ -45,7 +40,7 @@ int main(int argc, char **argv) {
     }
     FLAGS_log_dir = log_dir.c_str();
     FLAGS_stderrthreshold = 1; // Warning and above.
-    // FLAGS_logtostderr = true;
+    //FLAGS_logtostderr = true;
 
 
     if(argc != 2) {
@@ -53,24 +48,6 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
     LOG(INFO) << "[" << pthread_self() << "] main thread work";
-    
-    isShutdown = false;
-    if(pthread_mutex_init(&mutex, nullptr) != 0) {
-        perror("pthread_mutex_init");
-        LOG(FATAL) << "init mutex failure";
-    }
-    if(pthread_cond_init(&cond, nullptr)!= 0) {
-        perror("pthread_cond_init");
-        LOG(FATAL) << "init cond failure";
-    }
-
-    int avaiable_cores = get_nprocs();
-    thread_ids.clear();
-    for(int i = 0; i < avaiable_cores - 1; ++i) { // we use avaiable_cores -1 to create child thread, remain one core to main thread
-        pthread_t pid;
-        pthread_create(&pid, nullptr, thread_func, nullptr);
-        thread_ids.push_back(pid);
-    }
 
     
     signal(SIGINT, shutdown_func); // parent exit signal
@@ -82,53 +59,25 @@ int main(int argc, char **argv) {
         bool r = server.Accept();
         if(r) {
             LOG(INFO) << "Build connect from: " << std::string(server.GetClientIP());
-            if(thread_ids.empty()) { // no other threads, deal service by self
-                Request req(server.GetClientFd());
-                doRequest(req);
-            } else {
-                pthread_mutex_lock(&mutex);
-                requests.push_back({server.GetClientFd()});
-                pthread_mutex_unlock(&mutex);
-                pthread_cond_signal(&cond);
-            }
-            
+            pthread_t pid;
+            Request *req = new Request(server.GetClientFd());
+            pthread_create(&pid, nullptr, thread_func, (void *)req);
         }
     }
     
 }
 
-
 void shutdown_func(int sig) {
-    isShutdown = true;
-    pthread_cond_broadcast(&cond);
-    for(int i = 0; i < thread_ids.size(); ++i) {
-        pthread_join(thread_ids[i], nullptr);
-    }
-    if(global_server)
-        global_server->CloseListen();
-    
-    pthread_mutex_destroy(&mutex);
-    pthread_cond_destroy(&cond);
+    global_server->CloseListen();
     LOG(INFO) << "[" << pthread_self() << "] main thread exit";
     exit(0);
 }
 
 void* thread_func(void *argc) {
     LOG(INFO) << "[" << pthread_self() << "] thread work";
-    Request req;
-    pthread_mutex_lock(&mutex);
-    while(!isShutdown) {
-        if(requests.empty()) {
-            pthread_cond_wait(&cond, &mutex);
-        } else {
-            memcpy(&req, &requests[0], sizeof(req));
-            requests.erase(requests.begin());
-            pthread_mutex_unlock(&mutex);
-            doRequest(req);
-            pthread_mutex_lock(&mutex);
-        }
-    }
-    pthread_mutex_unlock(&mutex);
+    Request *req = (Request*)argc;
+    doRequest(*req);
+    delete req;
     LOG(INFO) << "[" << pthread_self() << "] thread exit";
     return nullptr;
 }

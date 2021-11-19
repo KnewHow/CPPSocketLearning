@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     client.Connect();
     char buffer[1024];
     int bufferLength = 0;
-    for(int i = 0; i < 10; ++i) {
+    for(int i = 0; i < 20; ++i) {
         memset(buffer,0,sizeof(buffer));
         snprintf(buffer,1000,"<bizcode>1</bizcode><username>Knewhow</username><password>123</password>");
         if(client.Write(buffer)) {

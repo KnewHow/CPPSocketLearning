@@ -17,7 +17,7 @@ int CustomerService::insert(Customer &customer) {
         return 0 ;
     }
 
-     sqlstatement stmt(&conn); // 操作SQL语句的对象。
+    sqlstatement stmt(&conn); // 操作SQL语句的对象。
 
     // 准备插入表的SQL语句。
     stmt.prepare("\
@@ -40,6 +40,33 @@ int CustomerService::insert(Customer &customer) {
     }
     conn.commit();
     return stmt.m_cda.rpc;
+}
+
+int CustomerService::deleteByUsername(std::string& username) {
+    connection conn;
+
+    if (conn.connecttodb(config.data(), charset.data())!=0)
+    {
+        printf("connect database failed.\n%s\n",conn.m_cda.message);
+        return 0 ;
+    }
+
+    sqlstatement stmt(&conn); // 操作SQL语句的对象。
+    
+    stmt.prepare("delete from customer where username=:1");
+
+
+
+    stmt.bindin(1, username.data(), username.size());
+
+    if (stmt.execute() != 0)
+    {
+      printf("stmt.execute() failed.\n%s\n%s\n",stmt.m_sql,stmt.m_cda.message);
+      return 0;
+    }
+    conn.commit();
+    return stmt.m_cda.rpc;
+
 }
 
 } // namespace server_client

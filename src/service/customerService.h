@@ -13,6 +13,7 @@ namespace server_client {
 class CustomerService {
 public:
     int insert(Customer &customer);
+    int deleteByUsername(std::string& username);
 };
 
 } // namespace server_client

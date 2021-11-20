@@ -7,13 +7,19 @@
 #define SRC_SERVICE_CUSTOMERSERVICE_H_
 
 #include "dao/customer.h"
+#include <optional>
+#include <vector>
 
 namespace server_client {
 
 class CustomerService {
 public:
-    int insert(Customer &customer);
-    int deleteByUsername(std::string& username);
+    int insert(const Customer &customer) const ;
+    int deleteByPhoneNumber(const std::string& phoneNumber) const;
+    std::optional<Customer> selectByPhoneNumber(const std::string& phoneNumber) const;
+    std::vector<Customer> selectBySex(int sex) const;
+    int deleteAll() const;
+    int updateUsernameById(long id, const std::string &username) const;
 };
 
 } // namespace server_client

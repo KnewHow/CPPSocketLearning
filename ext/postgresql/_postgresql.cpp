@@ -36,7 +36,7 @@ connection::~connection()
   disconnect();
 }
 
-int connection::connecttodb(char *connstr,char *charset,unsigned int autocommitopt)
+int connection::connecttodb(const char *connstr,const char *charset,unsigned int autocommitopt)
 {
   // 如果已连接上数据库，就不再连接
   // 所以，如果想重连数据库，必须显示的调用disconnect()方法后才能重连
@@ -62,7 +62,7 @@ int connection::connecttodb(char *connstr,char *charset,unsigned int autocommito
 }
 
 // 设置字符集，要与数据库的一致，否则中文会出现乱码
-void connection::character(char *charset)
+void connection::character(const char *charset)
 {
   PQsetClientEncoding(m_conn, charset);
 
@@ -426,7 +426,7 @@ int sqlstatement::prepare(const char *fmt,...)
   return 0;
 }
 
-int sqlstatement::bindin(unsigned int position,int *value)
+int sqlstatement::bindin(unsigned int position,const int *value)
 {
   if (m_nParamsIn>=MAXPARAMS) return -1;
 
@@ -439,7 +439,7 @@ int sqlstatement::bindin(unsigned int position,int *value)
   return 0;
 }
 
-int sqlstatement::bindin(unsigned int position,long *value)
+int sqlstatement::bindin(unsigned int position,const long *value)
 {
   if (m_nParamsIn>=MAXPARAMS) return -1;
 
@@ -452,7 +452,7 @@ int sqlstatement::bindin(unsigned int position,long *value)
   return 0;
 }
 
-int sqlstatement::bindin(unsigned int position,unsigned int *value)
+int sqlstatement::bindin(unsigned int position, const unsigned int *value)
 {
   if (m_nParamsIn>=MAXPARAMS) return -1;
 
@@ -465,7 +465,7 @@ int sqlstatement::bindin(unsigned int position,unsigned int *value)
   return 0;
 }
 
-int sqlstatement::bindin(unsigned int position,unsigned long *value)
+int sqlstatement::bindin(unsigned int position, const unsigned long *value)
 {
   if (m_nParamsIn>=MAXPARAMS) return -1;
 
@@ -478,7 +478,7 @@ int sqlstatement::bindin(unsigned int position,unsigned long *value)
   return 0;
 }
 
-int sqlstatement::bindin(unsigned int position,float *value)
+int sqlstatement::bindin(unsigned int position,const float *value)
 {
   if (m_nParamsIn>=MAXPARAMS) return -1;
 
@@ -491,7 +491,7 @@ int sqlstatement::bindin(unsigned int position,float *value)
   return 0;
 }
 
-int sqlstatement::bindin(unsigned int position,double *value)
+int sqlstatement::bindin(unsigned int position, const double *value)
 {
   if (m_nParamsIn>=MAXPARAMS) return -1;
 
@@ -504,7 +504,7 @@ int sqlstatement::bindin(unsigned int position,double *value)
   return 0;
 }
 
-int sqlstatement::bindin(unsigned int position, char *value,unsigned int len)
+int sqlstatement::bindin(unsigned int position, const char *value,unsigned int len)
 {
   if (m_nParamsIn>=MAXPARAMS) return -1;
 
@@ -601,7 +601,7 @@ int sqlstatement::bindout(unsigned int position,char *value,unsigned int len)
 {
   if (m_nParamsOut>=MAXPARAMS) return -1;
 
-  m_paramValuesOut[m_nParamsOut]=(char *)value;
+  m_paramValuesOut[m_nParamsOut]= value;
   strcpy(m_paramTypesOut[m_nParamsOut],"char");
   m_paramLengthsOut[m_nParamsOut]=len;
 

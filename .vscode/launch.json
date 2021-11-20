@@ -64,6 +64,7 @@
             "request": "launch",
             "program": "${workspaceRoot}/build/socket_test",
             "args": [
+                "--gtest_filter=Customer.SELECT_BY_SEX"
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

@@ -38,7 +38,7 @@ class connection
 private:
   char m_dbtype[21];   // 数据库种类，固定取值为"postgresql"。
 
-  void character(char *charset); // 设置字符集，要与数据库的一致，否则中文会出现乱码。
+  void character(const char *charset); // 设置字符集，要与数据库的一致，否则中文会出现乱码。
 
   int  begin(); // 开始事务。
 
@@ -60,7 +60,7 @@ public:
   // charset：数据库的字符集，如"gbk"，必须与数据库保持一致，否则会出现中文乱码的情况。
   // autocommitopt：是否启用自动提交，0-不启用，1-启用，缺省是不启用。
   // 返回值：0-成功，其它失败，失败的代码在m_cda.rc中，失败的描述在m_cda.message中。
-  int connecttodb(char *connstr,char *charset,unsigned int autocommitopt=0);
+  int connecttodb(const char *connstr,const char *charset,unsigned int autocommitopt=0);
 
   // 提交事务。
   // 返回值：0-成功，其它失败，程序员一般不必关心返回值。
@@ -155,13 +155,13 @@ public:
   // len：如果输入变量的数据类型是字符串，用len指定它的最大长度，建议采用表对应的字段长度。
   // 返回值：0-成功，其它失败，程序员一般不必关心返回值。
   // 注意：1）如果SQL语句没有改变，只需要bindin一次就可以了，2）绑定输入变量的总数不能超过256个。
-  int bindin(unsigned int position,int    *value);
-  int bindin(unsigned int position,long   *value);
-  int bindin(unsigned int position,unsigned int  *value);
-  int bindin(unsigned int position,unsigned long *value);
-  int bindin(unsigned int position,float *value);
-  int bindin(unsigned int position,double *value);
-  int bindin(unsigned int position,char   *value,unsigned int len);
+  int bindin(unsigned int position,const int    *value);
+  int bindin(unsigned int position,const long   *value);
+  int bindin(unsigned int position,const unsigned int  *value);
+  int bindin(unsigned int position,const unsigned long *value);
+  int bindin(unsigned int position,const float *value);
+  int bindin(unsigned int position,const double *value);
+  int bindin(unsigned int position,const char   *value, unsigned int len);
 
   // 绑定输出变量的地址。
   // position：字段的顺序，从1开始，与SQL的结果集一一对应。

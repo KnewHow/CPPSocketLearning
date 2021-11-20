@@ -7,8 +7,9 @@
 #define SRC_DAO_CUSTOMER_H_
 
 #include <string>
-#include "common/timeUtil.h"
 #include <string.h>
+
+#include "common/timeUtil.h"
 
 namespace server_client {
 

@@ -12,7 +12,7 @@ int CustomerService::insert(const Customer &customer) const  {
     // 登录数据库，返回值：0-成功，其它-失败。
     // 失败代码在conn.m_cda.rc中，失败描述在conn.m_cda.message中。
 
-    if (conn.connecttodb(config.c_str(), charset.c_str())!=0)
+    if (conn.connecttodb(DBConfig::config.c_str(), DBConfig::charset.c_str())!=0)
     {
         LOG(ERROR) << StringPrintf("connect database failed.\n%s\n",conn.m_cda.message);
         return 0 ;
@@ -46,7 +46,7 @@ int CustomerService::insert(const Customer &customer) const  {
 int CustomerService::deleteByPhoneNumber(const std::string& phoneNumber) const {
     connection conn;
 
-    if (conn.connecttodb(config.data(), charset.data())!=0)
+    if (conn.connecttodb(DBConfig::config.data(), DBConfig::charset.data())!=0)
     {
         LOG(ERROR) << StringPrintf("connect database failed.\n%s\n",conn.m_cda.message);
         return 0 ;
@@ -70,7 +70,7 @@ int CustomerService::deleteByPhoneNumber(const std::string& phoneNumber) const {
 std::optional<Customer>  CustomerService::selectByPhoneNumber(const std::string& phoneNumber) const {
     connection conn;
 
-    if (conn.connecttodb(config.data(), charset.data())!=0)
+    if (conn.connecttodb(DBConfig::config.data(), DBConfig::charset.data())!=0)
     {
         LOG(ERROR) << StringPrintf("connect database failed.\n%s\n",conn.m_cda.message);
         return std::nullopt ;
@@ -107,7 +107,7 @@ std::optional<Customer>  CustomerService::selectByPhoneNumber(const std::string&
 std::vector<Customer> CustomerService::selectBySex(int sex) const {
     connection conn;
     std::vector<Customer> rs;
-    if (conn.connecttodb(config.data(), charset.data())!=0)
+    if (conn.connecttodb(DBConfig::config.data(), DBConfig::charset.data())!=0)
     {
         LOG(ERROR) << StringPrintf("connect database failed.\n%s\n",conn.m_cda.message);
         return rs;
@@ -145,7 +145,7 @@ std::vector<Customer> CustomerService::selectBySex(int sex) const {
 
 int CustomerService::deleteAll() const {
     connection conn;
-    if (conn.connecttodb(config.data(), charset.data())!=0)
+    if (conn.connecttodb(DBConfig::config.data(), DBConfig::charset.data())!=0)
     {
         LOG(ERROR) << StringPrintf("connect database failed.\n%s\n",conn.m_cda.message);
         return 0;
@@ -165,7 +165,7 @@ int CustomerService::deleteAll() const {
 
 int CustomerService::updateUsernameById(long id, const std::string &username) const {
     connection conn;
-    if (conn.connecttodb(config.data(), charset.data())!=0)
+    if (conn.connecttodb(DBConfig::config.data(), DBConfig::charset.data())!=0)
     {
         LOG(ERROR) << StringPrintf("connect database failed.\n%s\n",conn.m_cda.message);
         return 0;

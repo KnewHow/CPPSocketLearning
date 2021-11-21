@@ -12,7 +12,7 @@ namespace server_client {
 int AccountService::insert(const Account &account) const {
     connection conn;
 
-    if (conn.connecttodb(config.data(), charset.data())!=0)
+    if (conn.connecttodb(DBConfig::config.data(), DBConfig::charset.data())!=0)
     {
         LOG(ERROR) << StringPrintf("connect database failed.\n%s\n",conn.m_cda.message);
         return 0 ;
@@ -65,7 +65,7 @@ bool AccountService::doTrade(long source_constomer_id, long dest_customer_id, lo
 std::optional<Account> AccountService::selectByCustomerId(long customer_id) const {
     connection conn;
 
-    if (conn.connecttodb(config.data(), charset.data())!=0)
+    if (conn.connecttodb(DBConfig::config.data(), DBConfig::charset.data())!=0)
     {
         LOG(ERROR) << StringPrintf("connect database failed.\n%s\n",conn.m_cda.message);
         return std::nullopt ;
@@ -100,7 +100,7 @@ std::optional<Account> AccountService::selectByCustomerId(long customer_id) cons
 int AccountService::deleteAll() const {
     connection conn;
 
-    if (conn.connecttodb(config.data(), charset.data())!=0)
+    if (conn.connecttodb(DBConfig::config.data(), DBConfig::charset.data())!=0)
     {
         LOG(ERROR) << StringPrintf("connect database failed.\n%s\n",conn.m_cda.message);
         return 0;
@@ -121,7 +121,7 @@ int AccountService::recharge(long customer_id, long money) const {
     auto account = selectByCustomerId(customer_id);
     if(account.has_value()) {
         connection conn;
-        if (conn.connecttodb(config.data(), charset.data())!=0)
+        if (conn.connecttodb(DBConfig::config.data(), DBConfig::charset.data())!=0)
         {
             LOG(ERROR) << StringPrintf("connect database failed.\n%s\n",conn.m_cda.message);
             return 0;
@@ -138,7 +138,7 @@ int AccountService::recharge(long customer_id, long money) const {
 
 int AccountService::minusMoneyById(connection &conn, long id, long money) const {
 
-    if (conn.connecttodb(config.data(), charset.data())!=0)
+    if (conn.connecttodb(DBConfig::config.data(), DBConfig::charset.data())!=0)
     {
         LOG(ERROR) << StringPrintf("connect database failed.\n%s\n",conn.m_cda.message);
         return 0 ;
@@ -159,7 +159,7 @@ int AccountService::minusMoneyById(connection &conn, long id, long money) const 
 }
 
 int AccountService::addMoneyById(connection &conn, long id, long money) const {
-    if (conn.connecttodb(config.data(), charset.data())!=0)
+    if (conn.connecttodb(DBConfig::config.data(), DBConfig::charset.data())!=0)
     {
         LOG(ERROR) << StringPrintf("connect database failed.\n%s\n",conn.m_cda.message);
         return 0 ;

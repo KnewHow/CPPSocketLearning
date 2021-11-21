@@ -9,7 +9,6 @@
 
 using namespace server_client;
 
-
 TEST(Customer, INSERT) {
     std::string phoneNumber = "18326600931";
     globalService::customervice.deleteByPhoneNumber(phoneNumber);

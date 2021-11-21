@@ -9,8 +9,14 @@
 #include <string>
 
 namespace server_client {
+class DBConfig{
+public:
+    DBConfig(const std::string &properties);
+    static std::string config;
+    static std::string charset;
+};
 
-    static std::string config = "host=127.0.0.1 user=postgres password=postgres dbname=socket_test port=5432";
-    static std::string charset = "utf8";
+
+    
 } // namespace server_client
 #endif // SRC_COMMON_DBCONFIG_H_

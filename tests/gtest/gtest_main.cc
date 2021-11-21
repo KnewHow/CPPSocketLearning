@@ -30,6 +30,7 @@
 #include <filesystem>
 #include "gtest/gtest.h"
 #include <glog/logging.h>
+#include "common/dbconfig.h"
 
 
 GTEST_API_ int main(int argc, char **argv) {
@@ -37,7 +38,7 @@ GTEST_API_ int main(int argc, char **argv) {
 
   FLAGS_logtostderr = true;
   FLAGS_stderrthreshold = 1; // Warning and above.
-
+  server_client::DBConfig dbconfig("../config/db.properties");
   printf("Running main() from gtest_main.cc\n");
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

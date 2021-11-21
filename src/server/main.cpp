@@ -11,6 +11,7 @@
 #include "socket/socket.h"
 #include "xmlParser.h"
 #include "service/globalService.h"
+#include "common/dbconfig.h"
 
 
 using namespace server_client;
@@ -54,7 +55,7 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
     LOG(INFO) << "[" << pthread_self() << "] main thread work";
-
+    DBConfig dbconfig("../config/db.properties");
     
     signal(SIGINT, shutdown_func); // parent exit signal
     signal(SIGTERM, shutdown_func);

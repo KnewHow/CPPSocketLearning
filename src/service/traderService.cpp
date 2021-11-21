@@ -9,7 +9,7 @@ namespace server_client {
 int TradeService::insert(const Trade& trade) const {
     connection conn;
 
-    if (conn.connecttodb(config.data(), charset.data())!=0)
+    if (conn.connecttodb(DBConfig::config.data(), DBConfig::charset.data())!=0)
     {
         LOG(ERROR) << StringPrintf("connect database failed.\n%s\n",conn.m_cda.message);
         return 0 ;
@@ -37,7 +37,7 @@ int TradeService::insert(const Trade& trade) const {
 int TradeService::deleteAll() const {
     connection conn;
 
-    if (conn.connecttodb(config.data(), charset.data())!=0)
+    if (conn.connecttodb(DBConfig::config.data(), DBConfig::charset.data())!=0)
     {
         LOG(ERROR) << StringPrintf("connect database failed.\n%s\n",conn.m_cda.message);
         return 0;

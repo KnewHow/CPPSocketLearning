@@ -67,7 +67,7 @@
                 "--gtest_filter=Account.DoTrade"
             ],
             "stopAtEntry": false,
-            "cwd": "${fileDirname}",
+            "cwd": "${workspaceRoot}/build",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",

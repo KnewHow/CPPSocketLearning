@@ -165,9 +165,8 @@ FILE (GLOB SOCKET_TEST
   tests/*.h
   tests/gtest/*.cc
   tests/db/*.cpp
+  tests/generate_bash/bash.cpp
 )
 add_executable (socket_test ${SOCKET_TEST} )
 TARGET_COMPILE_FEATURES (socket_test PRIVATE ${PBRT_CXX17_FEATURES} )
 TARGET_LINK_LIBRARIES (socket_test ${ALL_SOCKET_LIBS} )
-
-add_executable(generate_test_bash test_bash/generate_test_bash.cpp)

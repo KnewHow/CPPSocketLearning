@@ -184,4 +184,11 @@ int CustomerService::updateUsernameById(long id, const std::string &username) co
     return stmt.m_cda.rpc;
 }
 
+std::optional<Customer> CustomerService::login(const std::string &phone_number, const std::string &pass) const {
+    auto customer = selectByPhoneNumber(phone_number);
+    if(!customer.has_value()) return std::nullopt;
+    if(customer.value().password == pass) return customer;
+    else                                  return std::nullopt;
+}
+
 } // namespace server_client

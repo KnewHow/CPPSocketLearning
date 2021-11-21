@@ -20,6 +20,7 @@ public:
     bool doTrade(long source_constomer_id, long dest_customer_id, long money) const;
     std::optional<Account> selectByCustomerId(long customer_id) const;
     int deleteAll() const;
+    int recharge(long customer_id, long money) const;
 private:
     int minusMoneyById(connection &conn, long id, long money) const;
     int addMoneyById(connection &conn, long id, long money) const;

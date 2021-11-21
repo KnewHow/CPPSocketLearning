@@ -20,6 +20,7 @@ public:
     std::vector<Customer> selectBySex(int sex) const;
     int deleteAll() const;
     int updateUsernameById(long id, const std::string &username) const;
+    std::optional<Customer> login(const std::string &phone_number, const std::string &pass) const;
 };
 
 } // namespace server_client

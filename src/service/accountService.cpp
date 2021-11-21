@@ -115,9 +115,27 @@ int AccountService::deleteAll() const {
     }
     conn.commit();
     return stmt.m_cda.rpc;
-
-
 }
+
+int AccountService::recharge(long customer_id, long money) const {
+    auto account = selectByCustomerId(customer_id);
+    if(account.has_value()) {
+        connection conn;
+        if (conn.connecttodb(config.data(), charset.data())!=0)
+        {
+            LOG(ERROR) << StringPrintf("connect database failed.\n%s\n",conn.m_cda.message);
+            return 0;
+        }
+        int r = addMoneyById(conn, account.value().id, money);
+        conn.commit();
+        return r;
+    } else {
+        Account newAccount = Account(customer_id, money);
+        return insert(newAccount);
+    }
+}
+
+
 int AccountService::minusMoneyById(connection &conn, long id, long money) const {
 
     if (conn.connecttodb(config.data(), charset.data())!=0)

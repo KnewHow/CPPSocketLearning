@@ -31,6 +31,12 @@ DBConfig::DBConfig(const std::string &properties) {
     config += (" password=" + db_properties["password"]);
     config += (" dbname=" + db_properties["dbname"]);
     config += (" port=" + db_properties["port"]);
+    if(db_properties.find("charset") != db_properties.end()) {
+        charset = db_properties["charset"];
+    } else {
+        charset = "utf8";
+    }
+    
     LOG(INFO) << "config:" << config;
 }
 

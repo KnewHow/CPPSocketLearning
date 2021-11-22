@@ -4,6 +4,7 @@
 
 #include "client.h"
 #include "xmlParser.h"
+#include "common/timeUtil.h"
 
 using namespace server_client;
 
@@ -19,7 +20,7 @@ void queryMoney(const std::string &phone_number);
 void doTrade(const std::string &source_phone, const std::string &dest_phone, long money);
 
 int main(int argc, char **argv) {
-    // google::InitGoogleLogging(argv[0]);
+    google::InitGoogleLogging(argv[0]);
     // std::string log_dir = "/tmp/socket_client";
     // bool log_dir_is_exsit = std::filesystem::exists(log_dir.c_str());
     // if(!log_dir_is_exsit) {
@@ -70,12 +71,21 @@ void client_send(const char* sendBuffer, char *resultBuffer, int *resultBufferLe
         LOG(ERROR) << "Not init IP or port!";
         return;
     }
+    std::chrono::milliseconds begin = getCurrentMillseconds();
     Client client(IP, port);
     client.Connect();
     if(client.Write(sendBuffer)) {
-        LOG(INFO) << "Send message to server success: " << std::string(sendBuffer);
+        //LOG(INFO) << "Send message to server success: " << std::string(sendBuffer);
         if(client.Read(resultBuffer, resultBufferLen)) {
-            LOG(INFO) << "Receive server responese success: " << std::string(resultBuffer, *resultBufferLen);
+            std::chrono::milliseconds end = getCurrentMillseconds();
+            char phone_number[51];
+            memset(phone_number,0,sizeof(phone_number));
+            GetXMLBuffer(sendBuffer,"phone_number",phone_number,50);
+            int retcode=-1;
+            GetXMLBuffer(resultBuffer,"retcode",&retcode);
+            bool isSuccess = retcode == 0 ? true : false;
+            long took = (end - begin).count();
+            LOG(INFO) << "Receive server responese success, isSuccess:  " << std::boolalpha << isSuccess << ", phone_number: " << std::string(phone_number) << ", took: " << took << " ms"; 
         } else {
             LOG(INFO) << "Receive server response failure!";
         }

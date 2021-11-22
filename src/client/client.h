@@ -20,6 +20,7 @@ public:
     bool Write(const char *buffer, const int bufferLength = 0) const;
     bool Read(char *buffer, int *bufferLength) const;
     void Close();
+    int getClientFd() const { return sockfd; }
     
     const std::string server_IP;
     const int server_port;

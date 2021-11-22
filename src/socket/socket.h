@@ -53,7 +53,7 @@ bool TCPRead(const int sockfd, char *data, int *dataLength);
  * @return true Read sucesss
  * @return false Read failure
  */
-bool read(const int sockfd, char *data, const size_t length);
+bool readin(const int sockfd, char *data, const size_t length);
 
 /**
  * @brief Write data into socket
@@ -64,7 +64,7 @@ bool read(const int sockfd, char *data, const size_t length);
  * @return true Send data success
  * @return false Send data failure
  */
-bool write(const int sockfd, const char *data, const size_t length);
+bool writein(const int sockfd, const char *data, const size_t length);
 
 } // namespace server_client
 

@@ -17,21 +17,21 @@ bool TCPWrite(const int sockfd, const char *data, const int dataLength) {
     memset(buffer, 0, sizeof(buffer));
     memcpy(buffer, &net_length, 4);
     memcpy(buffer + 4, data, length);
-    return write(sockfd, buffer, length + 4);
+    return writein(sockfd, buffer, length + 4);
 }
 
 bool TCPRead(const int sockfd, char *data, int *dataLength) {
     *dataLength = 0;
     bool ret;
-    if(!read(sockfd, (char*)dataLength, 4)) return false;
+    if(!readin(sockfd, (char*)dataLength, 4)) return false;
     (*dataLength) = ntohl(*dataLength);
-    return read(sockfd, data, *dataLength);
+    return readin(sockfd, data, *dataLength);
 }
 
-bool read(const int sockfd, char *data, const size_t length) {
+bool readin(const int sockfd, char *data, const size_t length) {
     int left = length, idx = 0, ret;
     while(left > 0) {
-        ret = recv(sockfd, data + idx, left, 0);
+        ret = read(sockfd, data + idx, left);
         if(ret == -1) {
             perror("recv");
             return false;
@@ -44,7 +44,7 @@ bool read(const int sockfd, char *data, const size_t length) {
     return true;
 }
 
-bool write(const int sockfd, const char *data, const size_t length) {
+bool writein(const int sockfd, const char *data, const size_t length) {
     int left = length, idx = 0, ret;
     while(left > 0) {
         ret = send(sockfd, data + idx, left, 0);

@@ -20,6 +20,8 @@ DBConfig::DBConfig(const std::string &properties) {
     std::string line;
     while(!in.eof()) {
         std::getline(in, line);
+        if(line.empty() || line.front() == '#') 
+            continue;
         int index = line.find_first_of("=");
         std::string key = std::string(line.begin(), line.begin() + index);
         std::string value = std::string(line.begin() + index + 1, line.end());

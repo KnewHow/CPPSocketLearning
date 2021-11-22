@@ -64,7 +64,7 @@
             "request": "launch",
             "program": "${workspaceRoot}/build/socket_test",
             "args": [
-                "--gtest_filter=Account.DoTrade"
+                "--gtest_filter=Customer.INSERT"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}/build",

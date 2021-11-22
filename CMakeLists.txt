@@ -87,7 +87,6 @@ INCLUDE_DIRECTORIES(src/)
 INCLUDE_DIRECTORIES (
   ext/glog/src
   ext/xmlParser
-  ext/postgresql
 )
 
 FILE(GLOB COMMON_LIB
@@ -108,20 +107,6 @@ FILE(GLOB XML_PARSER
   ext/xmlParser/*.h
 )
 
-FILE(GLOB POSTGRESQL
-  ext/postgresql/*.cpp
-  ext/postgresql/*.h
-)
-
-FILE(GLOB SOCKET_DAO
-  src/dao/*.h
-  src/dao/*.cpp
-)
-
-FILE(GLOB SOCKET_SERVICE
-  src/service/*.h
-  src/service/*.cpp
-)
 
 SET(SOCKET_SOURCE
 	src/server/server.h
@@ -134,19 +119,13 @@ ADD_LIBRARY(SOCKET_LIB STATIC
 	${SOCKET_CORE_HEADS}
 	${SOCKET_CORE_SOURCES}
 	${SOCKET_SOURCE}
-  ${SOCKET_DAO}
-  ${SOCKET_SERVICE}
   ${COMMON_LIB}
 )
 
 SET(ALL_SOCKET_LIBS
 	SOCKET_LIB
 	glog
-  
   ${XML_PARSER}
-  ${POSTGRESQL}
-  -lpq
-  
 )
 
 add_executable(server src/server/main.cpp)
@@ -164,7 +143,6 @@ FILE (GLOB SOCKET_TEST
   tests/*.cpp
   tests/*.h
   tests/gtest/*.cc
-  tests/db/*.cpp
   tests/generate_bash/bash.cpp
 )
 add_executable (socket_test ${SOCKET_TEST} )

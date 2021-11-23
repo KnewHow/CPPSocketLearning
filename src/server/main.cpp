@@ -47,16 +47,16 @@ int main(int argc, char **argv) {
     int listenfd = initListenSocket();
 
     fd_set read_fd_set;
-    struct timeval tv;
+    struct timeval timeout;
     int max_fd = 0;
-    tv.tv_sec = 5; // timeout is 5 seconds
-    tv.tv_usec = 0;
+    timeout.tv_sec = 5; // timeout is 5 seconds
+    timeout.tv_usec = 0;
     FD_ZERO(&read_fd_set);
     FD_SET(listenfd, &read_fd_set);
     max_fd = listenfd;
     while(1) {
         fd_set tmp_fd_set = read_fd_set;
-        int in_fds = select(max_fd + 1, &tmp_fd_set, nullptr, nullptr, nullptr);
+        int in_fds = select(max_fd + 1, &tmp_fd_set, NULL, NULL, NULL);
         if(in_fds < 0) {
             perror("select");
             LOG(FATAL) << "select method error!";

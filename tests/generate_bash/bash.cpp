@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-// char IP[16] = "123.60.46.246";
+//char IP[16] = "123.60.46.246";
 char IP[16] = "127.0.0.1";
 
 TEST(Bash, Client) {

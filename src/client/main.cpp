@@ -30,6 +30,7 @@ int main(int argc, char **argv) {
     }
     IP = std::string(argv[1]);
     port = atoi(argv[2]);
+    int number = atoi(argv[3]);
 
     int sockfd;
     struct sockaddr_in servaddr;
@@ -47,9 +48,8 @@ int main(int argc, char **argv) {
         printf("connect(%s:%s) failed.\n",argv[1],argv[2]); close(sockfd);  return -1;
     }
 
-    printf("connect ok.\n");
     std::chrono::milliseconds begin = getCurrentMillseconds();
-    int messageSize = 100000;
+    int messageSize = 1;
     for (int i = 0; i < messageSize; ++i)
     {
         memset(buf,0,sizeof(buf));
@@ -77,5 +77,5 @@ int main(int argc, char **argv) {
         //printf("recv:%s\n",buf);
     }
     std::chrono::milliseconds end = getCurrentMillseconds();
-    LOG(INFO) << "Send " << messageSize << " took: " << (end - begin).count();
+    LOG(INFO) << "[" << number << "]  took: " << (end - begin).count() << " ms";
 }

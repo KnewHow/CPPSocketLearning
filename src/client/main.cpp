@@ -53,8 +53,6 @@ int main(int argc, char **argv) {
     for (int i = 0; i < messageSize; ++i)
     {
         memset(buf,0,sizeof(buf));
-        // 从命令行输入内容。
-        //printf("please input:"); scanf("%s",buf);
         sprintf(buf,"This is %d th message", i);
 
         if (write(sockfd,buf,strlen(buf)) <=0)

@@ -10,12 +10,12 @@
 #include <stdio.h>
 #include <netdb.h>
 
-#include <sys/select.h>
-
+#include <sys/epoll.h>
 
 #include "glog/logging.h"
 
 static constexpr int CLISTEN_QUEUE_LEN = 10;
+static constexpr int MAX_EVENTS = 100;
 void shutdown_func(int sig);
 
 int port = -1;
@@ -45,67 +45,61 @@ int main(int argc, char **argv) {
     signal(SIGTERM, shutdown_func);
 
     int listenfd = initListenSocket();
-
-    fd_set read_fd_set;
-    struct timeval timeout;
-    int max_fd = 0;
-    timeout.tv_sec = 5; // timeout is 5 seconds
-    timeout.tv_usec = 0;
-    FD_ZERO(&read_fd_set);
-    FD_SET(listenfd, &read_fd_set);
-    max_fd = listenfd;
+    int epollfd = epoll_create(1);
+    if(epollfd == -1) {
+        perror("epoll_create");
+        LOG(FATAL) << "create epoll failure";
+    }
+    struct epoll_event ev;
+    ev.data.fd = listenfd;
+    ev.events = EPOLLIN;
+    epoll_ctl(epollfd, EPOLL_CTL_ADD, listenfd, &ev);
     while(1) {
-        fd_set tmp_fd_set = read_fd_set;
-        int in_fds = select(max_fd + 1, &tmp_fd_set, NULL, NULL, NULL);
-        if(in_fds < 0) {
-            perror("select");
-            LOG(FATAL) << "select method error!";
-        } else if(in_fds == 0) {
-            LOG(INFO) << "select timeout!";
+        struct epoll_event events[MAX_EVENTS];
+        int infds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
+        if(infds < 0) {
+            perror("epoll_wait");
+            LOG(ERROR) << "epoll wait failure;";
+            break;
+        } else if(infds == 0) {
+            LOG(INFO) << "epoll wait timeout";
         } else {
-            for(int i = 0; i <= max_fd; ++i) {
-                if(FD_ISSET(i, &tmp_fd_set) != 0) {
-                    if(i == listenfd) { // new client connect
-                        struct sockaddr_in client_addr;
-                        socklen_t client_addr_len = sizeof(client_addr);
-                        int client_fd = accept(listenfd, (struct sockaddr*)&client_addr, &client_addr_len);
-                        if(client_fd < 0) {
-                            LOG(INFO) << "Accept failure";
-                        } else {
-                            LOG(INFO) << "Accept new client, socket=" << client_fd;
-                            FD_SET(client_fd, &read_fd_set); // add new client socket to listen socket set
-                            if(max_fd < client_fd) 
-                                max_fd = client_fd; // update max_fd   
-                        }
-                    } else { // client disconnect or send message
-                        char buffer[1024];
-                        memset(buffer, 0,sizeof(buffer));
-                        ssize_t size = read(i, buffer, sizeof(buffer));
-                        if(size <= 0) { // read finish or client disconnect
-                            LOG(INFO) << "Client has disconnected";
-                            close(i);
-                            FD_CLR(i, &read_fd_set); // remove client_fd from read listen set
-                            if(i == max_fd) { // if max_fd equal with removed i, recalculate max_fd
-                                for(int j = max_fd; j > 0; --j) {
-                                    if(FD_ISSET(j, &read_fd_set)) {
-                                        max_fd = j;
-                                        break;
-                                    }
-                                }
-                            }
-                        } else { // deal read data
-                            //LOG(INFO) << "Receive message: " << std::string(buffer, size);
-                            memset(buffer, 0, sizeof(buffer));
-                            sprintf(buffer, "Success");
-                            write(i, buffer, strlen(buffer));
-                        }
+            for(int i = 0; i < infds; ++i) {
+                if(events[i].data.fd == listenfd && (events[i].events & EPOLLIN)) { // new client connect
+                    struct sockaddr_in client_addr;
+                    socklen_t client_addr_len = sizeof(client_addr);
+                    int client_fd = accept(listenfd, (struct sockaddr*)&client_addr, &client_addr_len);
+                    if(client_fd < 0) {
+                        LOG(INFO) << "Accept failure";
+                    } else {
+                        //LOG(INFO) << "Accept new client, socket=" << client_fd;
+                        memset(&ev, 0, sizeof(ev));
+                        ev.data.fd = client_fd;
+                        ev.events = EPOLLIN;
+                        epoll_ctl(epollfd, EPOLL_CTL_ADD, client_fd, &ev);
+                    }
+                } else if(events[i].events & EPOLLIN) { // client send data or disconnect
+                    char buffer[1024];
+                    memset(buffer, 0,sizeof(buffer));
+                    ssize_t size = read(events[i].data.fd, buffer, sizeof(buffer));
+                    if(size <= 0) { // read finish or client disconnect
+                        //LOG(INFO) << "Client has disconnected: " << events[i].data.fd;
+                        memset(&ev, 0, sizeof(ev));
+                        ev.data.fd = events[i].data.fd;
+                        ev.events = EPOLLIN;
+                        epoll_ctl(epollfd, EPOLL_CTL_DEL, ev.data.fd, &ev);
+                        close(ev.data.fd);
+                    } else { // deal read data
+                        //LOG(INFO) << "Receive message: " << std::string(buffer, size);
+                        memset(buffer, 0, sizeof(buffer));
+                        sprintf(buffer, "Success");
+                        write(events[i].data.fd, buffer, strlen(buffer));
                     }
                 }
             }
         }
+
     }
-
-
     
 }
 

@@ -74,41 +74,28 @@ void shutdown_func(int sig) {
 }
 
 void* thread_func(void *argc) {
-    LOG(INFO) << "[" << pthread_self() << "] thread work";
     Request *req = (Request*)argc;
     doRequest(*req);
     delete req;
-    LOG(INFO) << "[" << pthread_self() << "] thread exit";
     return nullptr;
 }
 
 void doRequest(const Request &req) {
     char receiveBuffer[1024], sendBuffer[1024];
     int receiveBufferLength;
-    LOG(INFO) <<  "[" << pthread_self() <<"] thread deal request begin...";
-    while(true) {
-        memset(receiveBuffer, 0, sizeof(receiveBuffer));
-        memset(sendBuffer, 0, sizeof(sendBuffer));
-        if(TCPRead(req.clientfd, receiveBuffer, &receiveBufferLength)) {
-            LOG(INFO) << "Request: " << std::string(receiveBuffer, receiveBufferLength);
-            if(service(receiveBuffer, sendBuffer)) { // success deal service
-                if(TCPWrite(req.clientfd, sendBuffer)) { // send response to client
-                    LOG(INFO) << "Response: " << std::string(sendBuffer);
-                } else {
-                    break;
-                }
-            } else {
-                break;
-            }
-        } else {
-            break;
-        }
+    memset(receiveBuffer, 0, sizeof(receiveBuffer));
+    memset(sendBuffer, 0, sizeof(sendBuffer));
+    if(TCPRead(req.clientfd, receiveBuffer, &receiveBufferLength)) {
+        LOG(INFO) << "Request: " << std::string(receiveBuffer, receiveBufferLength);
+        sprintf(sendBuffer,"Success");
+        TCPWrite(req.clientfd, sendBuffer);
+    } else {
+        LOG(ERROR) << "Read data from client error";
     }
     if(close(req.clientfd) == -1) {
         perror("close");
         LOG(ERROR) << "Close clientfd: [" << req.clientfd << "] failure";
     }
-    LOG(INFO) <<  "[" << pthread_self() <<"] thread deal request end...";
 }
 
 bool service(char *receiveBuffer, char *sendBuffer) {
